@@ -1,0 +1,60 @@
+services:
+  bitrix-crm:
+    image: php:7.2-apache
+    container_name: bitrix-web
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8300:80"
+      - "8543:443"
+    volumes:
+      - ".:/var/www/html"
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    depends_on:
+      - mysqldb
+    links:
+      - mysqldb:mysqldb
+    networks:
+      - bitrix-net
+
+  mysqldb:
+    image: mariadb:10.2
+    container_name: bitrix-db
+    restart: always
+    volumes:
+      - db_bitrix:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_USER=root
+      - MYSQL_ROOT_PASSWORD=Ldovn@2024
+      - MYSQL_DATABASE=bitrixcrm
+    networks:
+      - bitrix-net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysqldb
+      PMA_USER: root
+      PMA_PASSWORD: Ldovn@2024
+    ports:
+      - "8301:80"
+    depends_on:
+      - mysqldb
+    networks:
+      - bitrix-net
+
+  memcached:
+    image: memcached:alpine
+    container_name: bitrix-cache
+    networks:
+      - bitrix-net
+
+volumes:
+  db_bitrix:
+
+networks:
+  bitrix-net:
